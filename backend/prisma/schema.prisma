@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  OWNER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+
+  businesses Business[]
+  bookings   Booking[]
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  owner        User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  services     Service[]
+  availability StaffAvailability[]
+
+  @@index([ownerId])
+}
+
+model Service {
+  id              String   @id @default(cuid())
+  businessId      String
+  name            String
+  durationMinutes Int
+  priceCents      Int
+  createdAt       DateTime @default(now())
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([businessId])
+}
+
+// Weekly recurring availability window for a business. dayOfWeek: 0 (Sunday) - 6 (Saturday).
+// startMinute/endMinute are minutes from midnight (e.g. 540 = 9:00 AM).
+model StaffAvailability {
+  id          String @id @default(cuid())
+  businessId  String
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, dayOfWeek])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  customerId String
+  serviceId  String
+  startTime  DateTime
+  endTime    DateTime
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+
+  customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service  Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([serviceId, startTime])
+  @@index([customerId])
+}
