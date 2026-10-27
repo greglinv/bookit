@@ -13,27 +13,32 @@ async function main() {
     },
   });
 
-  const business = await prisma.business.create({
-    data: {
-      ownerId: owner.id,
-      name: "Sunset Cuts Barbershop",
-      description: "Walk-ins welcome, appointments preferred.",
-      services: {
-        create: [
-          { name: "Haircut", durationMinutes: 30, priceCents: 3500 },
-          { name: "Haircut + Beard Trim", durationMinutes: 45, priceCents: 5000 },
-        ],
+  const name = "Sunset Cuts Barbershop";
+  const existing = await prisma.business.findFirst({ where: { ownerId: owner.id, name } });
+  const business =
+    existing ??
+    (await prisma.business.create({
+      data: {
+        ownerId: owner.id,
+        name,
+        description: "Walk-ins welcome, appointments preferred.",
+        timezone: "America/New_York",
+        services: {
+          create: [
+            { name: "Haircut", durationMinutes: 30, priceCents: 3500 },
+            { name: "Haircut + Beard Trim", durationMinutes: 45, priceCents: 5000 },
+          ],
+        },
+        availability: {
+          // Mon-Fri, 9:00 AM - 5:00 PM
+          create: [1, 2, 3, 4, 5].map((dayOfWeek) => ({
+            dayOfWeek,
+            startMinute: 9 * 60,
+            endMinute: 17 * 60,
+          })),
+        },
       },
-      availability: {
-        // Mon-Fri, 9:00 AM - 5:00 PM
-        create: [1, 2, 3, 4, 5].map((dayOfWeek) => ({
-          dayOfWeek,
-          startMinute: 9 * 60,
-          endMinute: 17 * 60,
-        })),
-      },
-    },
-  });
+    }));
 
   const customer = await prisma.user.upsert({
     where: { email: "customer@bookit.dev" },

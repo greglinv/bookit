@@ -35,11 +35,13 @@ model Business {
   ownerId     String
   name        String
   description String?
+  timezone    String   @default("UTC")
   createdAt   DateTime @default(now())
 
   owner        User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   services     Service[]
   availability StaffAvailability[]
+  bookings     Booking[]
 
   @@index([ownerId])
 }
@@ -76,14 +78,17 @@ model Booking {
   id         String        @id @default(cuid())
   customerId String
   serviceId  String
+  businessId String
   startTime  DateTime
   endTime    DateTime
   status     BookingStatus @default(PENDING)
   createdAt  DateTime      @default(now())
 
-  customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  service  Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  customer User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
 
-  @@index([serviceId, startTime])
+  @@index([businessId, startTime])
+  @@index([serviceId])
   @@index([customerId])
 }

@@ -8,5 +8,6 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   isProduction: process.env.NODE_ENV === "production",
   jwtSecret: required("JWT_SECRET"),
+  cancellationWindowHours: Number(process.env.CANCELLATION_WINDOW_HOURS ?? 24),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
 };
