@@ -38,3 +38,13 @@ a locally installed Postgres service, if you have one.
 Double-booking is prevented by a `SELECT ... FOR UPDATE` lock on the business row inside the
 booking transaction: a business is a single resource, so no two active bookings may overlap,
 regardless of service. Availability is interpreted in the business's own timezone (`Business.timezone`).
+
+## Trying the customer app
+
+1. `docker compose up -d`, then `npm run dev:backend` and `npm run dev:frontend` (two terminals).
+2. Open http://localhost:3000, pick *Sunset Cuts Barbershop*, choose a service, pick a future weekday
+   (the seeded business is open Mon-Fri 9-5 Eastern), select a time and confirm.
+3. Sign up when prompted (you return to the booking afterwards). Manage bookings under **My bookings**.
+   Customers can't cancel within `CANCELLATION_WINDOW_HOURS` of the start time.
+
+The frontend reads `NEXT_PUBLIC_API_URL` (default `http://localhost:4000`); see `frontend/.env.example`.
